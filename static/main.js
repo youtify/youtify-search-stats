@@ -52,17 +52,20 @@ function loadCloud(json) {
     var words = extractWords(global);
     nWords = words.length;
     $progress.style.display = "block";
+    var fontSize = d3.scale.log().range([10, 100]);
     d3.layout.cloud().size([WIDTH, HEIGHT])
         .words(words)
         .timeInterval(10)
         .rotate(function(d) { return ~~(Math.random() * 5) * 30 - 60; })
-        .fontSize(function(d) {
+        .font("Impact")
+        .fontSize(function(d) { return fontSize(+d.size); })
+        /*.fontSize(function(d) {
             var size = d.size * (d.size/biggestNum) * 14;
             if (size < 7) {
                 size = 7;
             }
             return size;
-        })
+        })*/
         .padding(1)
         .on("word", progress)
         .on("end", draw)
@@ -80,6 +83,7 @@ function draw(words) {
         .data(words)
         .enter().append("text")
         .style("font-size", function(d) { return d.size + "px"; })
+        .style("font-family", function(d) { return d.font; })
         .attr("text-anchor", "middle")
         .attr("transform", function(d) {
             return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
