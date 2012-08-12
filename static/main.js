@@ -1,5 +1,7 @@
 var initialPopStateHasRun = false;
+var controlsTimeoutTimer;
 var hasLoaded = false;
+var hasRendered = false;
 var biggestNum = 0;
 var WIDTH = window.innerWidth;
 var HEIGHT = window.innerHeight;
@@ -7,6 +9,7 @@ var global = {};
 var countries = {};
 var words = [];
 var progressCounter = 0;
+var $controls = document.querySelector('.controls');
 var $cloud = document.querySelector('.cloud');
 var $progress = document.querySelector('.progress');
 var $country = document.querySelector('select.country');
@@ -82,6 +85,7 @@ function progress(word) {
 function loadLayout() {
     $progress.style.display = "block";
     $cloud.innerHTML = '';
+    hasRendered = false;
 
     var fontSize = d3.scale.log().range([10, 100]);
 
@@ -122,6 +126,9 @@ function draw(words) {
             return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
         })
         .text(function(d) { return d.text; });
+
+    hasRendered = true;
+    fadeAwayControls();
 }
 
 function getData(callback) {
@@ -169,6 +176,7 @@ function run() {
             hasLoaded = true;
             parseData(json);
             setupCountryChooser();
+            showControls();
             run();
         });
         return;
@@ -183,6 +191,26 @@ function run() {
     extractWords(map);
     loadLayout();
 }
+
+function showControls () {
+    $controls.style.opacity = '1';
+}
+
+function fadeAwayControls() {
+    if (controlsTimeoutTimer) {
+        clearTimeout(controlsTimeoutTimer);
+    }
+    controlsTimeoutTimer = setTimeout(function() {
+        $controls.style.opacity = '0';
+    }, 3000);
+}
+
+window.onmousemove = function() {
+    if (hasRendered) {
+        showControls();
+        fadeAwayControls();
+    }
+};
 
 window.addEventListener('popstate', function(event) {
     // Chrome throws an initial popState, http://dropshado.ws/post/15251622664/ignore-initial-popstate
