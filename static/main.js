@@ -3,7 +3,7 @@ var WIDTH = window.innerWidth;
 var HEIGHT = window.innerHeight;
 var global = {};
 var countries = {};
-var nWords = 0;
+var words;
 var progressCounter = 0;
 var $progress = document.querySelector('.progress');
 var CACHE_TIME = 60 * 10 * 1000; // 10 minutes
@@ -23,14 +23,12 @@ function extractWords(map) {
         }
     }
 
-    words = words.sort(function(a, b) {
+    window.words = words.sort(function(a, b) {
         return a.size < b.size;
     });
-
-    return words;
 }
 
-function loadData(json) {
+function parseData(json) {
     for (i = 0; i < json.length; i += 1) {
         var entry = json[i];
         global[entry.q] = (global[entry.q] || 0) + 1;
@@ -49,13 +47,10 @@ function loadData(json) {
 
 function progress(word) {
     progressCounter += 1;
-    $progress.innerHTML = progressCounter + '/' + nWords;
+    $progress.innerHTML = progressCounter + '/' + words.length;
 }
 
-function loadCloud(json) {
-    loadData(json);
-    var words = extractWords(global);
-    nWords = words.length;
+function loadLayout() {
     $progress.style.display = "block";
     var fontSize = d3.scale.log().range([10, 100]);
     d3.layout.cloud().size([WIDTH, HEIGHT])
@@ -123,4 +118,8 @@ function getData(callback) {
     xhr.send();
 }
 
-getData(loadCloud);
+getData(function(json) {
+    parseData(json);
+    extractWords(global);
+    loadLayout();
+});
