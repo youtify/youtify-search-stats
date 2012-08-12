@@ -6,6 +6,7 @@ var countries = {};
 var nWords = 0;
 var progressCounter = 0;
 var $progress = document.querySelector('.progress');
+var CACHE_TIME = 3600 * 1000; // 1 hour
 
 function extractWords(map) {
     var i;
@@ -91,17 +92,32 @@ function draw(words) {
         .text(function(d) { return d.text; });
 }
 
-$progress.innerHTML = 'Loading data...';
+function getData(callback) {
+    var json;
+    var xhr;
+    var url;
+    $progress.innerHTML = 'Loading data...';
 
-var xhr = new XMLHttpRequest();
-var url = '/entries';
-var url = 'http://youtify-search-stats.appspot.com/entries';
-
-xhr.open('GET', url, true);
-xhr.onreadystatechange = function() {
-    if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
-        var json = JSON.parse(xhr.responseText);
-        loadCloud(json);
+    if (localStorage.cache && ((new Date() - new Date(localStorage.cacheTimestamp)) < CACHE_TIME)) {
+        json = JSON.parse(localStorage.cache);
+        callback(json);
+        return;
     }
-};
-xhr.send();
+
+    xhr = new XMLHttpRequest();
+    //url = '/entries';
+    url = 'http://youtify-search-stats.appspot.com/entries';
+
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200 || xhr.status == 304) {
+            localStorage.cacheTimestamp = new Date().toJSON();
+            localStorage.cache = xhr.responseText;
+            json = JSON.parse(xhr.responseText);
+            callback(json);
+        }
+    };
+    xhr.send();
+}
+
+getData(loadCloud);
