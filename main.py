@@ -44,6 +44,12 @@ class FakeSetupHandler(webapp.RequestHandler):
         if ON_PRODUCTION:
             return
 
+        countries = (
+            'FI',
+            'SE',
+            'CN',
+        )
+
         artists = (
             'Robyn',
             'rymdlego',
@@ -54,9 +60,9 @@ class FakeSetupHandler(webapp.RequestHandler):
             'Laleh',
         )
 
-        for i in range(0,100):
+        for i in range(0,1000):
             q = random.choice(artists)
-            country = 'SE'
+            country = random.choice(countries);
             region = None
             city = 'malmo'
             latlon = '51.603330,17.001302'
