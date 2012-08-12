@@ -23,6 +23,10 @@ function extractWords(map) {
         }
     }
 
+    words = words.sort(function(a, b) {
+        return a.size < b.size;
+    });
+
     return words;
 }
 
