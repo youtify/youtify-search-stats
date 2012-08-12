@@ -1,12 +1,21 @@
+var initialPopStateHasRun = false;
+var hasLoaded = false;
 var biggestNum = 0;
 var WIDTH = window.innerWidth;
 var HEIGHT = window.innerHeight;
 var global = {};
 var countries = {};
-var words;
+var words = [];
 var progressCounter = 0;
+var $cloud = document.querySelector('.cloud');
 var $progress = document.querySelector('.progress');
+var $country = document.querySelector('select.country');
 var CACHE_TIME = 60 * 10 * 1000; // 10 minutes
+
+$country.onchange = function() {
+    history.pushState(null, null, '/?country=' + this.value)
+    run();
+};
 
 function extractWords(map) {
     var i;
@@ -26,6 +35,30 @@ function extractWords(map) {
     window.words = words.sort(function(a, b) {
         return a.size < b.size;
     });
+
+    biggestNum = words[0].size;
+}
+
+function setupCountryChooser() {
+    var $option;
+    var selectedCountry = getCountryFromUrl();
+    $country.innerHTML = '';
+    $option = document.createElement('option');
+    $option.setAttribute('value', 'global');
+    $option.innerHTML = 'Global';
+    $country.appendChild($option);
+
+    for (key in countries) {
+        if (countries.hasOwnProperty(key)) {
+            $option = document.createElement('option');
+            $option.setAttribute('value', key);
+            $option.innerHTML = key;
+            if (selectedCountry === key) {
+                $option.setAttribute('selected', 'selected');
+            }
+            $country.appendChild($option);
+        }
+    }
 }
 
 function parseData(json) {
@@ -33,15 +66,11 @@ function parseData(json) {
         var entry = json[i];
         global[entry.q] = (global[entry.q] || 0) + 1;
 
-        if (global[entry.q] > biggestNum) {
-            biggestNum = global[entry.q];
-        }
-
         if (!countries.hasOwnProperty(entry.country)) {
             countries[entry.country] = {};
         }
 
-        countries[entry.country] = (countries[entry.country][entry.q] || 0) + 1;
+        countries[entry.country][entry.q] = (countries[entry.country][entry.q] || 0) + 1;
     }
 }
 
@@ -52,7 +81,10 @@ function progress(word) {
 
 function loadLayout() {
     $progress.style.display = "block";
+    $cloud.innerHTML = '';
+
     var fontSize = d3.scale.log().range([10, 100]);
+
     d3.layout.cloud().size([WIDTH, HEIGHT])
         .words(words)
         .timeInterval(10)
@@ -60,7 +92,7 @@ function loadLayout() {
         .font("Impact")
         .fontSize(function(d) { return fontSize(+d.size); })
         /*.fontSize(function(d) {
-            var size = d.size * (d.size/biggestNum) * 14;
+            var size = 62 * (d.size/biggestNum);
             if (size < 7) {
                 size = 7;
             }
@@ -74,7 +106,8 @@ function loadLayout() {
 
 function draw(words) {
     $progress.style.display = "none";
-    d3.select("body").append("svg")
+
+    d3.select(".cloud").append("svg")
         .attr("width", WIDTH)
         .attr("height", HEIGHT)
         .append("g")
@@ -118,8 +151,47 @@ function getData(callback) {
     xhr.send();
 }
 
-getData(function(json) {
-    parseData(json);
-    extractWords(global);
+function getCountryFromUrl() {
+    var matches = location.href.match('country=(.*)');
+    if (matches && matches.length === 2 && countries.hasOwnProperty(matches[1])) {
+        return matches[1];
+    }
+}
+
+function run() {
+    var map;
+    var selectedCountry = getCountryFromUrl();
+    progressCounter = 0;
+    words = [];
+
+    if (!hasLoaded) {
+        getData(function(json) {
+            hasLoaded = true;
+            parseData(json);
+            setupCountryChooser();
+            run();
+        });
+        return;
+    }
+
+    if (selectedCountry) {
+        map = countries[selectedCountry];
+    } else {
+        map = global;
+    }
+
+    extractWords(map);
     loadLayout();
+}
+
+window.addEventListener('popstate', function(event) {
+    // Chrome throws an initial popState, http://dropshado.ws/post/15251622664/ignore-initial-popstate
+    var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+    if (isChrome && !initialPopStateHasRun) {
+        initialPopStateHasRun = true;
+        return;
+    }
+    run();
 });
+
+run();
