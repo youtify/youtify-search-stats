@@ -11,6 +11,9 @@ handlers:
 - url: /fakesetup
   script: main.py
 
+- url: /import
+  script: main.py
+
 - url: /entries
   script: main.py
 

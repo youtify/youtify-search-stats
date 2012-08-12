@@ -1,5 +1,6 @@
 import os
 import random
+from google.appengine.api import urlfetch
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
@@ -15,6 +16,27 @@ class Entry(db.Model):
     region = db.StringProperty()
     city = db.StringProperty()
     latlon = db.StringProperty()
+
+class ImportFromProductionHandler(webapp.RequestHandler):
+
+    def get(self):
+        if ON_PRODUCTION:
+            return
+
+        url = 'http://youtify-search-stats.appspot.com/entries'
+        response = urlfetch.fetch(url, deadline=60)
+        json = simplejson.loads(response.content)
+
+        for entry in json:
+            q = entry['q']
+            country = entry['country']
+            region = entry['region']
+            city = entry['city']
+            latlon = entry['latlon']
+            m = Entry(q=q, country=country, region=region, city=city, latlon=latlon)
+            m.put()
+
+        self.redirect('/entries')
 
 class FakeSetupHandler(webapp.RequestHandler):
 
@@ -84,6 +106,7 @@ class MainHandler(webapp.RequestHandler):
 
 def main():
     application = webapp.WSGIApplication([
+        ('/import', ImportFromProductionHandler),
         ('/fakesetup', FakeSetupHandler),
         ('/entries', EntriesHandler),
         ('/', MainHandler),

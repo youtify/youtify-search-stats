@@ -6,7 +6,7 @@ var countries = {};
 var nWords = 0;
 var progressCounter = 0;
 var $progress = document.querySelector('.progress');
-var CACHE_TIME = 3600 * 1000; // 1 hour
+var CACHE_TIME = 60 * 10 * 1000; // 10 minutes
 
 function extractWords(map) {
     var i;
@@ -105,8 +105,7 @@ function getData(callback) {
     }
 
     xhr = new XMLHttpRequest();
-    //url = '/entries';
-    url = 'http://youtify-search-stats.appspot.com/entries';
+    url = '/entries';
 
     xhr.open('GET', url, true);
     xhr.onreadystatechange = function() {
