@@ -20,6 +20,16 @@ $country.onchange = function() {
     run();
 };
 
+function getLengthOfMap(map) {
+    var ret = 0;
+    for (key in map) {
+        if (map.hasOwnProperty(key)) {
+            ret += 1;
+        }
+    }
+    return ret;
+}
+
 function extractWords(map) {
     var i;
     var entry;
@@ -48,14 +58,14 @@ function setupCountryChooser() {
     $country.innerHTML = '';
     $option = document.createElement('option');
     $option.setAttribute('value', 'global');
-    $option.innerHTML = 'Global';
+    $option.innerHTML = 'Global (' + getLengthOfMap(global) + ')';
     $country.appendChild($option);
 
     for (key in countries) {
         if (countries.hasOwnProperty(key)) {
             $option = document.createElement('option');
             $option.setAttribute('value', key);
-            $option.innerHTML = key;
+            $option.innerHTML = key + ' (' + getLengthOfMap(countries[key]) + ')';
             if (selectedCountry === key) {
                 $option.setAttribute('selected', 'selected');
             }
