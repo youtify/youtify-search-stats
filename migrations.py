@@ -38,7 +38,7 @@ class MigrationStepHandler(webapp.RequestHandler):
 
         #### START MIGRATION CODE ####
 
-        for m in Entry.all().fetch(page_size, page_size * page):
+        for m in Entry.all().order('-timestamp').fetch(page_size, page_size * page):
             count += 1
             if ref != None and m.latlon == ref.latlon and ref.q.startswith(m.q):
                 #logging.info('deleting "%s" (ref = "%s")' % (m.q, ref.q))
