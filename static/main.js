@@ -138,6 +138,7 @@ function getData(callback) {
     $progress.innerHTML = 'Loading data...';
 
     if (localStorage.cache && ((new Date() - new Date(localStorage.cacheTimestamp)) < CACHE_TIME)) {
+        console.log('Loading entries from localStorage cache');
         json = JSON.parse(localStorage.cache);
         callback(json);
         return;
@@ -173,6 +174,7 @@ function run() {
 
     if (!hasLoaded) {
         getData(function(json) {
+            console.log(json.length + ' entries loaded');
             hasLoaded = true;
             parseData(json);
             setupCountryChooser();
