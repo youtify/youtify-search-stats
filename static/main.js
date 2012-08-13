@@ -96,7 +96,7 @@ function loadLayout() {
         .font("Impact")
         .fontSize(function(d) { return fontSize(+d.size); })
         /*.fontSize(function(d) {
-            var size = 62 * (d.size/biggestNum);
+            var size = 42 * (d.size/biggestNum);
             if (size < 7) {
                 size = 7;
             }

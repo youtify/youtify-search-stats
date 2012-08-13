@@ -17,5 +17,8 @@ handlers:
 - url: /entries
   script: main.py
 
+- url: /migrate
+  script: migrations.py
+
 - url: /
   script: main.py
